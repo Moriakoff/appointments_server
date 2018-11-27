@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import biweekly.Biweekly;
+import biweekly.property.Uid;
 import lombok.Data;
 
 /**
@@ -23,7 +25,7 @@ public class AppointmentCreation {
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm")
 	LocalDateTime end; 
 	
-	UUID EventID;
+    String EventID;
 	
 	boolean created;
 	boolean approved;
