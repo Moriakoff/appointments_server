@@ -22,6 +22,9 @@ public class AppointmentCreation {
 
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm")
 	LocalDateTime end; 
+	
+	UUID EventID;
+	
 	boolean created;
 	boolean approved;
 	
