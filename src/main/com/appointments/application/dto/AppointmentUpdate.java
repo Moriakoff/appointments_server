@@ -5,29 +5,22 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import biweekly.Biweekly;
-import biweekly.property.Uid;
 import lombok.Data;
 
-/**
- * dto for appointment creation; appointment is event with Organizer and Attendee; 
- *
- */
 @Data
-public class AppointmentCreation {
+public class AppointmentUpdate implements IAppointmentDTO {
 	
-	UUID uid;	
+	final RequestType requestType = RequestType.UPDATE;
+	UUID requestId;
+	String eventId; 
 	String organizer;
 	String attendee;
+	boolean registered;
+	boolean responded;
+	boolean complete;
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm")
 	LocalDateTime start; 
-
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm")
 	LocalDateTime end; 
-	
-    String EventID;
-	
-	boolean created;
-	boolean approved;
 	
 }

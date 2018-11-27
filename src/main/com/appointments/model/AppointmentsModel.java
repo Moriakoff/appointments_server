@@ -6,13 +6,14 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.swing.text.StyledEditorKit.ForegroundAction;
-
 import org.springframework.stereotype.Component;
 
-import com.appointments.application.dto.AppointmentCreation;
-
-import biweekly.component.VEvent;
+import com.appointments.application.dto.AppointmentCreate;
+import com.appointments.application.dto.AppointmentDelete;
+import com.appointments.application.dto.AppointmentRead;
+import com.appointments.application.dto.AppointmentUpdate;
+import com.appointments.application.dto.IAppointmentDTO;
+import com.appointments.application.dto.RequestType;
 
 
 /**
@@ -22,109 +23,341 @@ import biweekly.component.VEvent;
 public class AppointmentsModel implements IAppointmentsModel {
 
 	/**
-	 * Map for storing pending events to create by user name; attendees add data into it
+	 * Ledger for storing pending events to create by user name; attendees add data into it
 	 */
-	private Map<String, Map<UUID, AppointmentCreation>> appointmentsToCreate = new ConcurrentHashMap<String, Map<UUID, AppointmentCreation>>();
+	private Map<String, Map<UUID, IAppointmentDTO>> appointmentsRegister = new ConcurrentHashMap<String, Map<UUID, IAppointmentDTO>>();
+	
 	
 	public AppointmentsModel() {
 		super();
 	}
-
+	
 	/**
-	 * Attendee tries to create event; should return that the event was merely put into queue; 
+	 * Registering any appointment request in the ledger
+	 * @param appRequest
+	 * @return
 	 */
-	@Override
-	public boolean create(AppointmentCreation appEvent) {	
+	private Boolean register(IAppointmentDTO appRequest	) {
 		
-		String organiserName = appEvent.getOrganizer();
+		String organizerName = appRequest.getOrganizer();
 
-		if (!appointmentsToCreate.containsKey(organiserName)) {
+		if (!appointmentsRegister.containsKey(organizerName)) {
 			
-			appointmentsToCreate.put(organiserName, new TreeMap<UUID, AppointmentCreation>());
+			appointmentsRegister.put(organizerName, new TreeMap<UUID, IAppointmentDTO>());
 				
 		}
 		
-		appointmentsToCreate.get(organiserName).put(appEvent.getUid(), appEvent);
+		appRequest.setRegistered(true);
 		
-		Boolean created = true; // unknown how to reflect successful addition to appointmentsToCreate; 
+		appointmentsRegister.get(organizerName).put(appRequest.getRequestId(), appRequest);
+	
+		displayMapByOrganizer(organizerName);
+		
+		return true;
+	}
+	
+	/**
+	 * Getting a map of requests related to concrete organizer;
+	 * @param organizerName
+	 * @return
+	 */
+	private Map<UUID, IAppointmentDTO> getOrganizerRequests(String organizerName) {
+		if (!appointmentsRegister.containsKey(organizerName)) {
 			
-		return created;
-
-	}
-
-	@Override
-	public AppointmentCreation read(String organiserName, UUID uid) {
+			appointmentsRegister.put(organizerName, new TreeMap<UUID, IAppointmentDTO>());
+				
+		}
 		
-		return appointmentsToCreate.get(organiserName).get(uid);
+		Map<UUID, IAppointmentDTO> mapOfPendingCreations = appointmentsRegister.get(organizerName);
+		return mapOfPendingCreations;
+	}
+
+	/**
+	 * Attendee tries to create event; returns that the event was put into queue; 
+	 */
+	@Override
+	public Boolean registerCreate(AppointmentCreate appRequest) {	
 		
-	}
+		return register(appRequest);
 
+	}
+	
+	/**
+	 * Attendee tries to read event; returns that the event was put into queue; 
+	 */
 	@Override
-	public void update() {
-		// TODO Auto-generated method stub
+	public Boolean registerRead(AppointmentRead appRequest) {	
+		
+		return register(appRequest);
 
 	}
-
+	/**
+	 * Attendee tries to update event; returns that the event was put into queue; 
+	 */
 	@Override
-	public void delete() {
-		// TODO Auto-generated method stub
+	public Boolean registerUpdate(AppointmentUpdate appRequest) {	
+		
+		return register(appRequest);
 
 	}
+	/**
+	 * Attendee tries to delete event; returns that the event was put into queue; 
+	 */
+	@Override
+	public Boolean registerDelete(AppointmentDelete appRequest) {	
+		
+		return register(appRequest);
+
+	}
+
+	
+	/**
+	 * Attendee checks if his event was created; 
+	 */
+	@Override
+	public AppointmentCreate answeredCreate(String organizerName, UUID uid) {
+		
+		Map<UUID, IAppointmentDTO> mapOfPendingCreations = getOrganizerRequests(organizerName);
+
+		if (mapOfPendingCreations.size() == 0) return null; 
+		
+		displayMapByOrganizer(organizerName);
+		
+		for (Entry<UUID, IAppointmentDTO> entry : mapOfPendingCreations.entrySet()) {
+			if (entry.getValue().getRequestType() != RequestType.CREATE) continue; 
+			AppointmentCreate request = (AppointmentCreate) entry.getValue();
+			if (request.isResponded() == true) return request;
+		}
+		
+		return null;
+	}
+
+
+	/**
+	 * Attendee checks if his event was read; 
+	 */	
+	@Override
+	public AppointmentRead answeredRead(String organizerName, UUID uid) {
+		
+		Map<UUID, IAppointmentDTO> mapOfPendingCreations = getOrganizerRequests(organizerName);
+
+		if (mapOfPendingCreations.size() == 0) return null; 
+		
+		for (Entry<UUID, IAppointmentDTO> entry : mapOfPendingCreations.entrySet()) {
+			if (entry.getValue().getRequestType() != RequestType.READ) continue; 
+			AppointmentRead request = (AppointmentRead) entry.getValue();
+			if (request.isResponded() == true) return request;
+		}
+		
+		return null;
+	}
+
+
+	/**
+	 * Attendee checks if his event was updated; 
+	 */
+	@Override
+	public AppointmentUpdate answeredUpdate(String organizerName, UUID uid) {
+		
+		Map<UUID, IAppointmentDTO> mapOfPendingCreations = getOrganizerRequests(organizerName);
+
+		if (mapOfPendingCreations.size() == 0) return null; 
+		
+		for (Entry<UUID, IAppointmentDTO> entry : mapOfPendingCreations.entrySet()) {
+			if (entry.getValue().getRequestType() != RequestType.UPDATE) continue; 
+			AppointmentUpdate request = (AppointmentUpdate) entry.getValue();
+			if (request.isResponded() == true) return request;
+		}
+		
+		return null;
+	}
+
+
+	/**
+	 * Attendee checks if his event was deleted; 
+	 */
+	@Override
+	public AppointmentDelete answeredDelete(String organizerName, UUID uid) {
+		
+		Map<UUID, IAppointmentDTO> mapOfPendingCreations = getOrganizerRequests(organizerName);
+
+		if (mapOfPendingCreations.size() == 0) return null; 
+		
+		for (Entry<UUID, IAppointmentDTO> entry : mapOfPendingCreations.entrySet()) {
+			if (entry.getValue().getRequestType() != RequestType.DELETE) continue; 
+			AppointmentDelete request = (AppointmentDelete) entry.getValue();
+			if (request.isResponded() == true) return request;
+		}
+		
+		return null;
+	}
+
+
 
 	/**
 	 * Organiser gets events that he has to create; 
 	 */
 	@Override
-	public AppointmentCreation pendingToCreate(String organiserName) {
+	public AppointmentCreate pendingToCreate(String organizerName) {
 		
-		Map<UUID, AppointmentCreation> mapOfPendingCreations = appointmentsToCreate.get(organiserName);
+		Map<UUID, IAppointmentDTO> mapOfPendingCreations = getOrganizerRequests(organizerName);
 
 		if (mapOfPendingCreations.size() == 0) return null; 
+
+		displayMapByOrganizer(organizerName);
 		
-		for (Entry<UUID, AppointmentCreation> entry : mapOfPendingCreations.entrySet()) {
-			if (entry.getValue().isCreated() == false) return entry.getValue();
+		for (Entry<UUID, IAppointmentDTO> entry : mapOfPendingCreations.entrySet()) {
+			if (entry.getValue().getRequestType() != RequestType.CREATE) continue; 
+			AppointmentCreate request = (AppointmentCreate) entry.getValue();
+			if (request.isResponded() == false) return request;
 		}
 		
 		return null; 
 	
 	}
+	
 
+	/**
+	 * Organiser gets a request on event status;
+	 */
 	@Override
-	public UUID pendingToReport(String organiserName) {
-		// TODO Auto-generated method stub
-		return null;
+	public AppointmentRead pendingToRead(String organizerName) {
+		
+        Map<UUID, IAppointmentDTO> mapOfPendingCreations = getOrganizerRequests(organizerName);
+
+		if (mapOfPendingCreations.size() == 0) return null; 
+		
+		for (Entry<UUID, IAppointmentDTO> entry : mapOfPendingCreations.entrySet()) {
+			if (entry.getValue().getRequestType() != RequestType.READ) continue; 
+			AppointmentRead request = (AppointmentRead) entry.getValue();
+			if (request.isResponded() == false) return request;
+		}
+		
+		return null; 
 	}
 
+	
+
+
+	/**
+	 * Organiser gets a request on event status;
+	 */
 	@Override
-	public VEvent pendingToUpdate(String organiserName) {
-		// TODO Auto-generated method stub
-		return null;
+	public AppointmentUpdate pendingToUpdate(String organizerName) {
+		
+		Map<UUID, IAppointmentDTO> mapOfPendingCreations = getOrganizerRequests(organizerName);
+
+		if (mapOfPendingCreations.size() == 0) return null; 
+		
+		for (Entry<UUID, IAppointmentDTO> entry : mapOfPendingCreations.entrySet()) {
+			if (entry.getValue().getRequestType() != RequestType.UPDATE) continue; 
+			AppointmentUpdate request = (AppointmentUpdate) entry.getValue();
+			if (request.isResponded() == false) return request;
+		}
+		
+		return null; 
 	}
 
+	/**
+	 * Organiser gets a request on event status;
+	 */
 	@Override
-	public UUID pendingToDelete(String organiserName) {
-		// TODO Auto-generated method stub
-		return null;
+	public AppointmentDelete pendingToDelete(String organizerName) {
+
+		Map<UUID, IAppointmentDTO> mapOfPendingCreations = getOrganizerRequests(organizerName);
+
+		if (mapOfPendingCreations.size() == 0) return null; 
+		
+		for (Entry<UUID, IAppointmentDTO> entry : mapOfPendingCreations.entrySet()) {
+			if (entry.getValue().getRequestType() != RequestType.DELETE) continue; 
+			AppointmentDelete request = (AppointmentDelete) entry.getValue();
+			if (request.isResponded() == false) return request;
+		}
+		
+		return null; 
 	}
 
 	/**
 	 * Organiser reports on event status;
 	 */
 	@Override
-	public Boolean organiserReport(String organiserName, AppointmentCreation appEvent) {
+	public Boolean reportCreate(AppointmentCreate appEvent) { // need generic dto or split reports; 
 		
-		UUID UUID = appEvent.getUid();
+		String organizerName = appEvent.getOrganizer();
 		
-		if (!appointmentsToCreate.containsKey(organiserName)) { appointmentsToCreate.put(organiserName, new TreeMap<UUID, AppointmentCreation>());}
+		UUID UUID = appEvent.getRequestId();
 		
-		appointmentsToCreate.get(organiserName).put(UUID, appEvent);
+		if (!appointmentsRegister.containsKey(organizerName)) { appointmentsRegister.put(organizerName, new TreeMap<UUID, IAppointmentDTO>());}
 		
+		appointmentsRegister.get(organizerName).put(UUID, appEvent);
+		
+		displayMapByOrganizer(organizerName);
+				
 		return true; // unknown how to reflect successful report; 
+		
 	}
 
-	private void displayMapByOrganiser(String organiserName) {
+	/**
+	 * Organiser reports on event status;
+	 */
+	@Override
+	public Boolean reportRead(AppointmentRead appEvent) { // need generic dto or split reports; 
 		
-		for(Entry<UUID, AppointmentCreation> entry : appointmentsToCreate.get(organiserName).entrySet()){
+		String organizerName = appEvent.getOrganizer();
+		
+		UUID UUID = appEvent.getRequestId();
+		
+		if (!appointmentsRegister.containsKey(organizerName)) { appointmentsRegister.put(organizerName, new TreeMap<UUID, IAppointmentDTO>());}
+		
+		appointmentsRegister.get(organizerName).put(UUID, appEvent);
+				
+		return true; // unknown how to reflect successful report; 
+		
+	}
+
+	/**
+	 * Organiser reports on event status;
+	 */
+	@Override
+	public Boolean reportUpdate(AppointmentUpdate appEvent) { // need generic dto or split reports; 
+		
+		String organizerName = appEvent.getOrganizer();
+		
+		UUID UUID = appEvent.getRequestId();
+		
+		if (!appointmentsRegister.containsKey(organizerName)) { appointmentsRegister.put(organizerName, new TreeMap<UUID, IAppointmentDTO>());}
+		
+		appointmentsRegister.get(organizerName).put(UUID, appEvent);
+				
+		return true; // unknown how to reflect successful report; 
+		
+	}
+
+	/**
+	 * Organiser reports on event status;
+	 */
+	@Override
+	public Boolean reportDelete(AppointmentDelete appEvent) { // need generic dto or split reports; 
+		
+		String organizerName = appEvent.getOrganizer();
+		
+		UUID UUID = appEvent.getRequestId();
+		
+		if (!appointmentsRegister.containsKey(organizerName)) { appointmentsRegister.put(organizerName, new TreeMap<UUID, IAppointmentDTO>());}
+		
+		appointmentsRegister.get(organizerName).put(UUID, appEvent);
+				
+		return true; // unknown how to reflect successful report; 
+		
+	}
+
+
+
+
+	
+	private void displayMapByOrganizer(String organizerName) {
+		
+		for(Entry<UUID, IAppointmentDTO> entry : appointmentsRegister.get(organizerName).entrySet()){
 			System.out.println("UUID "+entry.getKey()+" entry "+entry.getValue().toString());
 		}
 		
