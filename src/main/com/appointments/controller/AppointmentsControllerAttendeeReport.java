@@ -2,6 +2,7 @@ package com.appointments.controller;
 
 import java.util.UUID;
 
+import com.appointments.application.repository.AppointmentsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,9 @@ import com.appointments.model.IAppointmentsModel;
 @RequestMapping(value="/attendee/report")
 public class AppointmentsControllerAttendeeReport implements IAppointmentsControllerAttendeeReport {
 
+
+    @Autowired
+    AppointmentsRepository repository;
 
 	@Autowired 
 	private IAppointmentsModel model;  	//https://stackoverflow.com/a/52526618

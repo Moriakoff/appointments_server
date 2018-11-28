@@ -8,6 +8,7 @@ public class FreeBusy {
 	public FreeBusy(VFreeBusy freeBusy) {
 		super();
 		this.freeBusy = freeBusy;
+
 	}
 
 	public FreeBusy() {
