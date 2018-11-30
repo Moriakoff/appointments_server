@@ -1,19 +1,13 @@
 package com.appointments.model;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.appointments.application.dto.AppointmentDTO;
+import com.appointments.application.dto.IAppointmentDTO;
 import org.springframework.stereotype.Component;
 
-import com.appointments.application.dto.AppointmentCreate;
-import com.appointments.application.dto.AppointmentDelete;
-import com.appointments.application.dto.AppointmentRead;
-import com.appointments.application.dto.AppointmentUpdate;
-import com.appointments.application.dto.IAppointmentDTO;
-import com.appointments.application.dto.RequestType;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -25,18 +19,47 @@ public class AppointmentsModel implements IAppointmentsModel {
 	/**
 	 * Ledger for storing pending events to create by user name; attendees add data into it
 	 */
-	private Map<String, Map<UUID, IAppointmentDTO>> appointmentsRegister = new ConcurrentHashMap<String, Map<UUID, IAppointmentDTO>>();
+    private Map <String, Map <UUID, IAppointmentDTO>> appointmentsRegister = new ConcurrentHashMap <>();
 	
 	
 	public AppointmentsModel() {
 		super();
 	}
-	
-	/**
+
+
+    @Override
+    public Boolean register(AppointmentDTO appointment) {
+        //TODO  register
+        return null;
+    }
+
+    @Override
+    public AppointmentDTO answer(String organizerName, UUID uid) {
+        //TODO  answered
+        return null;
+    }
+
+    @Override
+    public AppointmentDTO pendingTo(String organizerName) {
+        //TODO  pendingTo
+        return null;
+    }
+
+    @Override
+    public Boolean report(AppointmentDTO appointment) {
+        //TODO  report
+        return null;
+    }
+
+    /*
+
+     */
+/**
 	 * Registering any appointment request in the ledger
 	 * @param appRequest
 	 * @return
-	 */
+ *//*
+
 	private Boolean register(IAppointmentDTO appRequest	) {
 		
 		String organizerName = appRequest.getOrganizer();
@@ -56,11 +79,13 @@ public class AppointmentsModel implements IAppointmentsModel {
 		return true;
 	}
 	
-	/**
+	*/
+/**
 	 * Getting a map of requests related to concrete organizer;
 	 * @param organizerName
 	 * @return
-	 */
+ *//*
+
 	private Map<UUID, IAppointmentDTO> getOrganizerRequests(String organizerName) {
 		if (!appointmentsRegister.containsKey(organizerName)) {
 			
@@ -72,9 +97,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 		return mapOfPendingCreations;
 	}
 
-	/**
+	*/
+/**
 	 * Attendee tries to create event; returns that the event was put into queue; 
-	 */
+ *//*
+
 	@Override
 	public Boolean registerCreate(AppointmentCreate appRequest) {	
 		
@@ -82,27 +109,33 @@ public class AppointmentsModel implements IAppointmentsModel {
 
 	}
 	
-	/**
+	*/
+/**
 	 * Attendee tries to read event; returns that the event was put into queue; 
-	 */
+ *//*
+
 	@Override
 	public Boolean registerRead(AppointmentRead appRequest) {	
 		
 		return register(appRequest);
 
 	}
-	/**
+	*/
+/**
 	 * Attendee tries to update event; returns that the event was put into queue; 
-	 */
+ *//*
+
 	@Override
 	public Boolean registerUpdate(AppointmentUpdate appRequest) {	
 		
 		return register(appRequest);
 
 	}
-	/**
+	*/
+/**
 	 * Attendee tries to delete event; returns that the event was put into queue; 
-	 */
+ *//*
+
 	@Override
 	public Boolean registerDelete(AppointmentDelete appRequest) {	
 		
@@ -111,9 +144,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 	}
 
 	
-	/**
+	*/
+/**
 	 * Attendee checks if his event was created; 
-	 */
+ *//*
+
 	@Override
 	public AppointmentCreate answeredCreate(String organizerName, UUID uid) {
 		
@@ -133,9 +168,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 	}
 
 
-	/**
+	*/
+/**
 	 * Attendee checks if his event was read; 
-	 */	
+ *//*
+
 	@Override
 	public AppointmentRead answeredRead(String organizerName, UUID uid) {
 		
@@ -153,9 +190,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 	}
 
 
-	/**
+	*/
+/**
 	 * Attendee checks if his event was updated; 
-	 */
+ *//*
+
 	@Override
 	public AppointmentUpdate answeredUpdate(String organizerName, UUID uid) {
 		
@@ -173,9 +212,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 	}
 
 
-	/**
+	*/
+/**
 	 * Attendee checks if his event was deleted; 
-	 */
+ *//*
+
 	@Override
 	public AppointmentDelete answeredDelete(String organizerName, UUID uid) {
 		
@@ -194,9 +235,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 
 
 
-	/**
+	*/
+/**
 	 * Organiser gets events that he has to create; 
-	 */
+ *//*
+
 	@Override
 	public AppointmentCreate pendingToCreate(String organizerName) {
 		
@@ -217,9 +260,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 	}
 	
 
-	/**
+	*/
+/**
 	 * Organiser gets a request on event status;
-	 */
+ *//*
+
 	@Override
 	public AppointmentRead pendingToRead(String organizerName) {
 		
@@ -239,9 +284,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 	
 
 
-	/**
+	*/
+/**
 	 * Organiser gets a request on event status;
-	 */
+ *//*
+
 	@Override
 	public AppointmentUpdate pendingToUpdate(String organizerName) {
 		
@@ -258,9 +305,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 		return null; 
 	}
 
-	/**
+	*/
+/**
 	 * Organiser gets a request on event status;
-	 */
+ *//*
+
 	@Override
 	public AppointmentDelete pendingToDelete(String organizerName) {
 
@@ -277,9 +326,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 		return null; 
 	}
 
-	/**
+	*/
+/**
 	 * Organiser reports on event status;
-	 */
+ *//*
+
 	@Override
 	public Boolean reportCreate(AppointmentCreate appEvent) { // need generic dto or split reports; 
 		
@@ -297,9 +348,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 		
 	}
 
-	/**
+	*/
+/**
 	 * Organiser reports on event status;
-	 */
+ *//*
+
 	@Override
 	public Boolean reportRead(AppointmentRead appEvent) { // need generic dto or split reports; 
 		
@@ -315,9 +368,11 @@ public class AppointmentsModel implements IAppointmentsModel {
 		
 	}
 
-	/**
+	*/
+/**
 	 * Organiser reports on event status;
-	 */
+ *//*
+
 	@Override
 	public Boolean reportUpdate(AppointmentUpdate appEvent) { // need generic dto or split reports; 
 		
@@ -333,9 +388,12 @@ public class AppointmentsModel implements IAppointmentsModel {
 		
 	}
 
-	/**
+	*/
+
+    /**
 	 * Organiser reports on event status;
-	 */
+     *//*
+
 	@Override
 	public Boolean reportDelete(AppointmentDelete appEvent) { // need generic dto or split reports; 
 		
@@ -353,6 +411,7 @@ public class AppointmentsModel implements IAppointmentsModel {
 
 
 
+*/
 
 	
 	private void displayMapByOrganizer(String organizerName) {
